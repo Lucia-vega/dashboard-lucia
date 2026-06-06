@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Lucía Vega</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --fondo:#FFF5F9;--rosa:#C2185B;--rosa2:#E91E8C;--rosa-claro:#FCE4EC;--rosa-medio:#F8BBD0;
+  --violeta:#7B1FA2;--violeta-claro:#F3E5F5;--coral:#FF6B6B;--coral-claro:#FFE8E8;
+  --menta:#00897B;--menta-claro:#E0F2F1;--dorado:#F9A825;--dorado-claro:#FFF9C4;
+  --azul:#1565C0;--azul-claro:#E3F2FD;--texto:#2D1B3D;--texto2:#6B5B73;--texto3:#A090A8;
+  --card:#FFFFFF;--borde:#F0E6F6;
+}
+body{font-family:'Nunito',sans-serif;color:var(--texto);background:var(--fondo);min-height:100vh;padding:16px}
+.wrap{max-width:720px;margin:0 auto}
+.hero{background:linear-gradient(135deg,#C2185B 0%,#7B1FA2 50%,#1565C0 100%);padding:20px;border-radius:20px;position:relative;overflow:hidden;margin-bottom:14px}
+.hero::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:rgba(255,255,255,0.08);border-radius:50%}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start}
+.hero-name{font-family:'Playfair Display',serif;font-size:24px;color:#fff}
+.hero-sub{font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px}
+.hero-date{font-size:11px;color:rgba(255,255,255,0.8);margin-top:10px}
+.hero-pct{font-size:38px;font-weight:900;color:#fff;line-height:1}
+.hero-pct-label{font-size:10px;color:rgba(255,255,255,0.7)}
+.hero-bar-bg{background:rgba(255,255,255,0.2);border-radius:8px;height:6px;margin-top:8px}
+.hero-bar{height:6px;border-radius:8px;background:linear-gradient(90deg,#FFD54F,#FF8A65);transition:width 0.5s}
+.chips{display:flex;gap:6px;padding:10px 0;overflow-x:auto;margin-bottom:12px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{font-size:12px;font-weight:800;padding:7px 16px;border-radius:20px;cursor:pointer;white-space:nowrap;border:2px solid transparent;transition:all 0.2s}
+.chip-rosa{background:var(--rosa-claro);color:var(--rosa)}.chip-azul{background:var(--azul-claro);color:var(--azul)}
+.chip-violeta{background:var(--violeta-claro);color:var(--violeta)}.chip-menta{background:var(--menta-claro);color:var(--menta)}
+.chip.active{border-color:currentColor;font-weight:900}
+.section{display:none}.section.visible{display:block}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.met{border-radius:14px;padding:12px 8px;text-align:center}
+.met-val{font-size:22px;font-weight:900;line-height:1}
+.met-label{font-size:9px;font-weight:800;margin-top:2px;opacity:0.8;text-transform:uppercase;letter-spacing:0.5px}
+.met1{background:linear-gradient(135deg,#FCE4EC,#F8BBD0);color:var(--rosa)}
+.met2{background:linear-gradient(135deg,#E3F2FD,#BBDEFB);color:var(--azul)}
+.met3{background:linear-gradient(135deg,#E0F2F1,#B2DFDB);color:var(--menta)}
+.met4{background:linear-gradient(135deg,#F3E5F5,#E1BEE7);color:var(--violeta)}
+.met5{background:linear-gradient(135deg,#FFF9C4,#FFF176);color:#F57F17}
+.met6{background:linear-gradient(135deg,#FFE8E8,#FFCDD2);color:#C62828}
+.slabel{font-size:11px;font-weight:800;color:var(--texto3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.card{background:var(--card);border:1px solid var(--borde);border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(194,24,91,0.06)}
+.card-head{font-size:13px;font-weight:800;color:var(--texto);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.motivacion{background:linear-gradient(135deg,#FF6B6B,#FF8E53);border-radius:14px;padding:12px 14px;margin-bottom:12px;color:#fff}
+.mot-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;opacity:0.8;margin-bottom:4px}
+.mot-text{font-size:12px;font-weight:700;line-height:1.5}
+.sql-banner{background:linear-gradient(135deg,var(--azul-claro),var(--violeta-claro));border-radius:14px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;border:1px solid var(--rosa-medio)}
+.sql-icon{font-size:22px;color:var(--violeta)}
+.sql-text{font-size:12px;font-weight:800;color:var(--violeta)}
+.sql-sub{font-size:10px;color:var(--texto3);font-weight:600}
+.task-item{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px dashed var(--borde)}
+.task-item:last-child{border-bottom:none}
+.task-cb{width:18px;height:18px;cursor:pointer;accent-color:var(--rosa);flex-shrink:0;margin-top:2px}
+.task-body{flex:1}
+.task-name{font-size:13px;font-weight:600;color:var(--texto);line-height:1.3}
+.task-name.done{text-decoration:line-through;color:var(--texto3)}
+.task-meta{display:flex;align-items:center;gap:6px;margin-top:3px;flex-wrap:wrap}
+.task-time{font-size:10px;color:var(--texto3)}
+.task-cat{font-size:9px;font-weight:800;padding:2px 7px;border-radius:20px;text-transform:uppercase;letter-spacing:0.4px}
+.cat-empleo{background:var(--rosa-claro);color:var(--rosa)}.cat-linkedin{background:var(--menta-claro);color:var(--menta)}
+.cat-sql{background:var(--azul-claro);color:var(--azul)}.cat-ingles{background:var(--violeta-claro);color:var(--violeta)}
+.cat-tecnico{background:var(--dorado-claro);color:#F57F17}.cat-personal{background:var(--coral-claro);color:#C62828}
+.timer-btn{font-size:9px;padding:2px 8px;border-radius:20px;border:1px solid var(--rosa-medio);color:var(--rosa);background:var(--rosa-claro);cursor:pointer;font-weight:800}
+.timer-btn.running{background:var(--rosa);color:#fff}
+.timer-display{font-size:10px;font-weight:900;color:var(--rosa);min-width:35px}
+.obs-input{width:100%;font-size:11px;padding:5px 8px;border:1px solid var(--borde);border-radius:8px;color:var(--texto);background:var(--fondo);font-family:'Nunito',sans-serif;margin-top:4px;resize:none}
+.obs-big{width:100%;font-size:12px;border:1px solid var(--borde);border-radius:8px;padding:8px;height:70px;resize:vertical;font-family:'Nunito',sans-serif;color:var(--texto);background:var(--fondo)}
+.btn-add{display:flex;gap:6px;margin-top:10px;align-items:center;flex-wrap:wrap}
+.btn-add input,.btn-add select{font-size:12px;border:1px solid var(--borde);border-radius:10px;padding:7px 10px;font-family:'Nunito',sans-serif;color:var(--texto);background:#fff;flex:1;min-width:80px}
+.btn-rosa{background:linear-gradient(135deg,var(--rosa),var(--violeta));color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:12px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap}
+.btn-rosa:disabled{opacity:0.6}
+.btn-verde{background:linear-gradient(135deg,var(--menta),#00695C);color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:12px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap}
+
+/* ── API KEY BANNER ── */
+.api-banner{background:linear-gradient(135deg,#E8F5E9,#F3E5F5);border:1.5px solid #CE93D8;border-radius:14px;padding:12px 14px;margin-bottom:12px}
+.api-banner-title{font-size:12px;font-weight:800;color:var(--violeta);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.api-banner-sub{font-size:10px;color:var(--texto3);margin-bottom:8px;line-height:1.5}
+.api-key-row{display:flex;gap:6px;align-items:center}
+.api-key-input{flex:1;font-size:11px;border:1px solid #CE93D8;border-radius:8px;padding:7px 10px;font-family:'Nunito',sans-serif;color:var(--texto);background:#fff}
+.api-key-status{font-size:10px;font-weight:800;margin-top:5px}
+.api-key-status.ok{color:var(--menta)}.api-key-status.err{color:#C62828}
+.api-link{font-size:10px;color:var(--violeta);font-weight:700;text-decoration:none}
+.api-link:hover{text-decoration:underline}
+
+.ai-zona{background:linear-gradient(135deg,var(--violeta-claro),var(--rosa-claro));border-radius:14px;padding:14px;margin-bottom:10px;border:1px solid var(--rosa-medio)}
+.ai-label{font-size:12px;font-weight:800;color:var(--violeta);margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.ai-zona textarea{width:100%;font-size:12px;border:1px solid var(--rosa-medio);border-radius:10px;padding:8px;height:80px;resize:vertical;font-family:'Nunito',sans-serif;background:rgba(255,255,255,0.85);color:var(--texto)}
+.ai-resultado{font-size:11px;color:var(--violeta);margin-top:6px;font-weight:700;min-height:16px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.form-grid input,.form-grid select,.form-full input,.form-full select,.form-full textarea{width:100%;font-size:12px;border:1px solid var(--borde);border-radius:10px;padding:7px 10px;font-family:'Nunito',sans-serif;color:var(--texto);background:#fff}
+.form-full{margin-bottom:8px}
+.form-full textarea{height:60px;resize:vertical}
+.form-section{font-size:10px;font-weight:800;color:var(--rosa);text-transform:uppercase;letter-spacing:0.5px;margin:10px 0 6px;padding-top:8px;border-top:1px dashed var(--borde)}
+.app-item{padding:12px;border-radius:14px;margin-bottom:8px;border:1px solid var(--borde);background:#fff;box-shadow:0 1px 4px rgba(194,24,91,0.04)}
+.app-empresa{font-size:14px;font-weight:800;color:var(--texto)}
+.app-cargo{font-size:12px;color:var(--texto2);font-weight:600}
+.app-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center}
+.app-badge{font-size:10px;padding:3px 9px;border-radius:20px;font-weight:800}
+.ab-enviada{background:var(--azul-claro);color:var(--azul)}.ab-respuesta{background:var(--dorado-claro);color:#F57F17}
+.ab-entrevista{background:var(--menta-claro);color:var(--menta)}.ab-descartada{background:var(--coral-claro);color:#C62828}
+.ab-remoto{background:var(--violeta-claro);color:var(--violeta)}.ab-presencial{background:var(--rosa-claro);color:var(--rosa)}
+.ab-hibrido{background:var(--dorado-claro);color:#E65100}
+.app-detail{font-size:11px;color:var(--texto2);margin-top:4px;line-height:1.6}
+.app-skills{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.skill-tag{font-size:10px;padding:2px 8px;border-radius:20px;background:var(--azul-claro);color:var(--azul);font-weight:700}
+.match-bar{margin-top:6px}
+.match-label{font-size:10px;color:var(--texto3);margin-bottom:2px}
+.match-bg{background:var(--borde);border-radius:4px;height:6px}
+.match-fill{height:6px;border-radius:4px;background:linear-gradient(90deg,var(--menta),var(--azul))}
+.fase-item{margin-bottom:12px}
+.fase-head{display:flex;justify-content:space-between;margin-bottom:4px}
+.fase-name{font-size:12px;font-weight:700;color:var(--texto)}
+.fase-num{font-size:13px;font-weight:900;color:var(--rosa)}
+.fase-bg{background:var(--borde);border-radius:8px;height:10px;overflow:hidden}
+.fase-fill{height:10px;border-radius:8px;transition:width 0.5s}
+.cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px}
+.cal-dname{font-size:9px;font-weight:800;color:var(--texto3);text-align:center;text-transform:uppercase}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day{border-radius:10px;padding:5px 2px;text-align:center;cursor:pointer;border:2px solid transparent;min-height:40px;display:flex;flex-direction:column;align-items:center}
+.cal-day:hover{border-color:var(--rosa-medio);background:var(--rosa-claro)}
+.cal-day.hoy{border-color:var(--rosa);background:var(--rosa-claro)}
+.cal-day.otro-mes{opacity:0.25}
+.cal-num{font-size:12px;font-weight:700}
+.cal-dots{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;margin-top:3px}
+.cdot{width:5px;height:5px;border-radius:50%}
+.leyenda{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
+.leyenda span{font-size:10px;color:var(--texto3);display:flex;align-items:center;gap:3px}
+.export-row{display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap}
+.stats-mini{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px}
+.stat-mini{background:var(--card);border:1px solid var(--borde);border-radius:10px;padding:8px 10px}
+.stat-mini-val{font-size:16px;font-weight:900;color:var(--rosa)}
+.stat-mini-label{font-size:10px;color:var(--texto3);font-weight:600}
+.obs-global{background:var(--card);border:1px solid var(--borde);border-radius:12px;padding:12px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <div class="hero-top">
+    <div>
+      <div class="hero-name">Lucía Vega</div>
+      <div class="hero-sub">Analista de Datos · En camino a Bogotá</div>
+      <div class="hero-date" id="hero-fecha"></div>
+    </div>
+    <div style="text-align:right">
+      <div class="hero-pct" id="hero-pct">0%</div>
+      <div class="hero-pct-label">completado hoy</div>
+    </div>
+  </div>
+  <div class="hero-bar-bg"><div class="hero-bar" id="hero-bar" style="width:0%"></div></div>
+</div>
+
+<!-- BANNER API KEY GEMINI -->
+<div class="api-banner" id="api-banner">
+  <div class="api-banner-title"><i class="ti ti-key"></i> Conectar IA Gratis (Gemini de Google)</div>
+  <div class="api-banner-sub">
+    Ingresa tu API Key de Gemini para activar la extracción automática de ofertas.<br>
+    La key se guarda solo en tu navegador, nadie más la ve.<br>
+    <a class="api-link" href="https://aistudio.google.com/app/apikey" target="_blank">👉 Obtener API Key gratis en aistudio.google.com</a>
+  </div>
+  <div class="api-key-row">
+    <input type="password" class="api-key-input" id="gemini-key-input" placeholder="Pega aquí tu API Key de Gemini...">
+    <button class="btn-rosa" onclick="guardarKey()"><i class="ti ti-check"></i> Guardar</button>
+    <button onclick="verKey()" style="font-size:11px;padding:6px 10px;border-radius:8px;border:1px solid var(--borde);background:var(--fondo);cursor:pointer"><i class="ti ti-eye"></i></button>
+  </div>
+  <div class="api-key-status" id="api-key-status"></div>
+</div>
+
+<div class="chips">
+  <div class="chip chip-rosa active" onclick="showTab('hoy',this)">Hoy</div>
+  <div class="chip chip-azul" onclick="showTab('apps',this)">Aplicaciones</div>
+  <div class="chip chip-violeta" onclick="showTab('fases',this)">Mi progreso</div>
+  <div class="chip chip-menta" onclick="showTab('cal',this)">Calendario</div>
+</div>
+
+<!-- HOY -->
+<div id="tab-hoy" class="section visible">
+  <div class="metrics">
+    <div class="met met1"><div class="met-val" id="m-tareas">0/0</div><div class="met-label">Tareas hoy</div></div>
+    <div class="met met2"><div class="met-val" id="m-apps">0</div><div class="met-label">Aplicaciones</div></div>
+    <div class="met met3"><div class="met-val" id="m-entrev">0</div><div class="met-label">Entrevistas</div></div>
+    <div class="met met4"><div class="met-val" id="m-posts">0</div><div class="met-label">Posts LinkedIn</div></div>
+    <div class="met met5"><div class="met-val" id="m-sql">0</div><div class="met-label">Días SQL</div></div>
+    <div class="met met6"><div class="met-val" id="m-racha">1</div><div class="met-label">Racha días</div></div>
+  </div>
+  <div class="motivacion">
+    <div class="mot-label">Frase del día</div>
+    <div class="mot-text" id="frase-dia"></div>
+  </div>
+  <div class="sql-banner">
+    <i class="ti ti-database sql-icon"></i>
+    <div><div class="sql-text">Curso SQL comienza el miércoles</div><div class="sql-sub">30 min diarios · SQLZoo o Mode SQL Tutorial · gratuito</div></div>
+  </div>
+  <div class="slabel">Tareas de hoy</div>
+  <div class="card">
+    <div id="lista-tareas"></div>
+    <div class="btn-add">
+      <input type="text" id="nueva-tarea" placeholder="Nueva tarea..." style="flex:2">
+      <select id="nueva-cat">
+        <option value="empleo">Empleo</option>
+        <option value="linkedin">LinkedIn</option>
+        <option value="sql">SQL</option>
+        <option value="ingles">Inglés</option>
+        <option value="tecnico">Técnico</option>
+        <option value="personal">Personal</option>
+      </select>
+      <input type="number" id="nueva-min" placeholder="min" style="max-width:65px;flex:none" min="5" max="180" step="5">
+      <button class="btn-rosa" onclick="agregarTarea()"><i class="ti ti-plus"></i></button>
+    </div>
+  </div>
+  <div class="obs-global">
+    <div class="slabel" style="margin-bottom:6px">Reflexión del día</div>
+    <textarea class="obs-big" id="obs-dia" placeholder="¿Qué aprendí hoy? ¿Qué fue difícil? ¿Qué haré diferente mañana?"></textarea>
+  </div>
+</div>
+
+<!-- APLICACIONES -->
+<div id="tab-apps" class="section">
+  <div class="stats-mini">
+    <div class="stat-mini"><div class="stat-mini-val" id="st-total">0</div><div class="stat-mini-label">Total aplicaciones</div></div>
+    <div class="stat-mini"><div class="stat-mini-val" id="st-entrev">0</div><div class="stat-mini-label">Entrevistas</div></div>
+    <div class="stat-mini"><div class="stat-mini-val" id="st-remoto">0</div><div class="stat-mini-label">Remotas</div></div>
+    <div class="stat-mini"><div class="stat-mini-val" id="st-tasa">0%</div><div class="stat-mini-label">Tasa de respuesta</div></div>
+  </div>
+
+  <div class="export-row">
+    <button class="btn-verde" onclick="exportarExcel()"><i class="ti ti-file-spreadsheet"></i> Exportar a Excel</button>
+    <span style="font-size:11px;color:var(--texto3)">Descarga todos los datos para analizar en Excel o Power BI</span>
+  </div>
+
+  <div class="ai-zona">
+    <div class="ai-label"><i class="ti ti-robot"></i> Pegar oferta — IA extrae todos los datos</div>
+    <textarea id="oferta-texto" placeholder="Pega aquí el texto completo de la oferta y la IA extrae empresa, cargo, ciudad, salario, modalidad, skills y funciones automáticamente..."></textarea>
+    <button class="btn-rosa" onclick="extraerOferta()" id="btn-extraer" style="margin-top:8px">✨ Extraer con IA</button>
+    <div class="ai-resultado" id="ai-resultado"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><i class="ti ti-edit" style="color:var(--rosa)"></i> Registrar aplicación</div>
+
+    <div class="form-section">Información básica</div>
+    <div class="form-grid">
+      <input type="text" id="app-empresa" placeholder="Empresa *">
+      <input type="text" id="app-cargo" placeholder="Cargo *">
+      <input type="text" id="app-ciudad" placeholder="Ciudad">
+      <input type="date" id="app-fecha">
+    </div>
+    <div class="form-grid">
+      <input type="text" id="app-salario" placeholder="Salario (ej: $2.5M - $3M)">
+      <select id="app-modalidad">
+        <option value="">Modalidad</option>
+        <option value="remoto">Remoto</option>
+        <option value="presencial">Presencial</option>
+        <option value="hibrido">Híbrido</option>
+      </select>
+    </div>
+
+    <div class="form-section">Requisitos de la oferta</div>
+    <div class="form-full">
+      <input type="text" id="app-skills" placeholder="Skills requeridas (ej: Python, SQL, Power BI, Excel)">
+    </div>
+    <div class="form-grid">
+      <input type="text" id="app-experiencia" placeholder="Experiencia requerida (ej: 1-2 años)">
+      <input type="text" id="app-educacion" placeholder="Educación (ej: Ingeniería)">
+    </div>
+    <div class="form-full">
+      <textarea id="app-funciones" placeholder="Principales funciones del cargo..."></textarea>
+    </div>
+
+    <div class="form-section">Seguimiento</div>
+    <div class="form-grid">
+      <select id="app-estado">
+        <option value="enviada">Enviada</option>
+        <option value="respuesta">Respuesta recibida</option>
+        <option value="entrevista">Entrevista agendada</option>
+        <option value="descartada">Descartada</option>
+      </select>
+      <input type="range" id="app-match" min="0" max="100" step="5" value="50" oninput="document.getElementById('match-val').textContent=this.value+'%'" style="accent-color:var(--menta)">
+    </div>
+    <div style="font-size:11px;color:var(--texto3);margin-bottom:8px">Match con mi perfil: <b id="match-val">50%</b></div>
+    <div class="form-full">
+      <textarea id="app-obs" placeholder="Observaciones: contacto, impresión general, próximos pasos..."></textarea>
+    </div>
+
+    <button class="btn-rosa" onclick="agregarApp()"><i class="ti ti-plus"></i> Registrar aplicación</button>
+  </div>
+
+  <div class="slabel">Mis aplicaciones <span id="apps-count" style="font-size:10px;font-weight:400;color:var(--texto3)"></span></div>
+  <div id="lista-apps"></div>
+</div>
+
+<!-- FASES -->
+<div id="tab-fases" class="section">
+  <div class="metrics" style="grid-template-columns:repeat(2,1fr)">
+    <div class="met met1"><div class="met-val" id="fp-0">15%</div><div class="met-label">Fase 1</div></div>
+    <div class="met met5"><div class="met-val" id="fp-1">5%</div><div class="met-label">SQL</div></div>
+    <div class="met met6"><div class="met-val" id="fp-2">3%</div><div class="met-label">Inglés</div></div>
+    <div class="met met3"><div class="met-val" id="fp-3">0%</div><div class="met-label">Experiencia</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><i class="ti ti-chart-bar" style="color:var(--rosa)"></i> Progreso por fases — sube con tareas completadas</div>
+    <div id="fases-lista"></div>
+    <div style="font-size:10px;color:var(--texto3);margin-top:8px;font-style:italic">Los porcentajes aumentan automáticamente cuando marcas tareas como completadas cada día.</div>
+  </div>
+  <div class="obs-global">
+    <div class="slabel" style="margin-bottom:6px">Notas de progreso semanal</div>
+    <textarea class="obs-big" id="obs-fases" placeholder="¿Qué avancé esta semana? ¿Qué me bloqueó? ¿Cuál es mi próximo hito?"></textarea>
+  </div>
+</div>
+
+<!-- CALENDARIO -->
+<div id="tab-cal" class="section">
+  <div class="card">
+    <div class="card-head" style="justify-content:space-between">
+      <span><i class="ti ti-calendar" style="color:var(--rosa)"></i> <span id="cal-mes-label"></span></span>
+      <div style="display:flex;gap:4px">
+        <button onclick="cambiarMes(-1)" style="font-size:13px;padding:3px 10px;border-radius:8px;border:1px solid var(--borde);background:var(--fondo);cursor:pointer"><i class="ti ti-arrow-left"></i></button>
+        <button onclick="cambiarMes(1)" style="font-size:13px;padding:3px 10px;border-radius:8px;border:1px solid var(--borde);background:var(--fondo);cursor:pointer"><i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+    <div class="cal-head">
+      <div class="cal-dname">L</div><div class="cal-dname">M</div><div class="cal-dname">M</div>
+      <div class="cal-dname">J</div><div class="cal-dname">V</div><div class="cal-dname">S</div><div class="cal-dname">D</div>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="leyenda">
+      <span><span class="cdot" style="background:var(--rosa)"></span>Empleo</span>
+      <span><span class="cdot" style="background:var(--menta)"></span>LinkedIn</span>
+      <span><span class="cdot" style="background:var(--azul)"></span>SQL</span>
+      <span><span class="cdot" style="background:var(--violeta)"></span>Inglés</span>
+    </div>
+  </div>
+  <div class="obs-global">
+    <div class="slabel" style="margin-bottom:6px">Nota del día seleccionado</div>
+    <textarea class="obs-big" id="obs-cal" placeholder="Selecciona un día para agregar una nota..."></textarea>
+  </div>
+</div>
+
+</div>
+<script>
+// ── CONSTANTES ──
+const FRASES=['Tu proyecto SECOP II es único en Colombia. Nadie más tiene esa historia.','Hoy una tarea bien hecha vale más que 10 CVs enviados sin estrategia.','El inglés no te falta para siempre — te falta para este mes. Empieza hoy.','Cada commit en GitHub es una prueba de que eres analista de datos.','La diferencia entre conseguir el trabajo y no conseguirlo es LinkedIn activo.','SQL en 30 minutos al día. En 8 semanas tendrás un proyecto nuevo en GitHub.','Aplica enfocada, no masivamente. 5 ofertas bien elegidas > 50 al azar.','Bogotá te espera. Y tú ya tienes lo que necesitas para llegar.'];
+const CAT_COLORS={empleo:'cat-empleo',linkedin:'cat-linkedin',sql:'cat-sql',ingles:'cat-ingles',tecnico:'cat-tecnico',personal:'cat-personal'};
+const CAT_LABELS={empleo:'Empleo',linkedin:'LinkedIn',sql:'SQL',ingles:'Inglés',tecnico:'Técnico',personal:'Personal'};
+const AB_CLASS={enviada:'ab-enviada',respuesta:'ab-respuesta',entrevista:'ab-entrevista',descartada:'ab-descartada'};
+const AB_LABEL={enviada:'Enviada',respuesta:'Respuesta',entrevista:'Entrevista',descartada:'Descartada'};
+const MOD_CLASS={remoto:'ab-remoto',presencial:'ab-presencial',hibrido:'ab-hibrido'};
+const FASES=[
+  {label:'Fase 1 — Ingresos ya',color:'linear-gradient(90deg,#C2185B,#E91E8C)',base:15},
+  {label:'Fase 2 — SQL demostrable',color:'linear-gradient(90deg,#F9A825,#FF8F00)',base:5},
+  {label:'Fase 3 — Inglés funcional',color:'linear-gradient(90deg,#FF6B6B,#FF8E53)',base:3},
+  {label:'Fase 4 — Experiencia real',color:'linear-gradient(90deg,#00897B,#26A69A)',base:0},
+  {label:'Fase 5 — Escalar',color:'linear-gradient(90deg,#1565C0,#1976D2)',base:0},
+];
+
+// ── ESTADO ──
+let S={
+  tareas:[
+    {id:1,txt:'Revisar 5 ofertas y seleccionar 2 para aplicar',cat:'empleo',min:30,done:false,tiempo:0,corriendo:false,obs:''},
+    {id:2,txt:'Adaptar CV con keywords de la oferta seleccionada',cat:'empleo',min:20,done:false,tiempo:0,corriendo:false,obs:''},
+    {id:3,txt:'Publicar post en LinkedIn',cat:'linkedin',min:15,done:false,tiempo:0,corriendo:false,obs:''},
+    {id:4,txt:'Contactar 1 persona nueva en LinkedIn',cat:'linkedin',min:10,done:false,tiempo:0,corriendo:false,obs:''},
+    {id:5,txt:'15 min de inglés — Duolingo o YouTube sin subtítulos',cat:'ingles',min:15,done:false,tiempo:0,corriendo:false,obs:''},
+    {id:6,txt:'Curso SQL — comienza el miércoles (SQLZoo o Mode)',cat:'sql',min:30,done:false,tiempo:0,corriendo:false,obs:''},
+  ],
+  apps:[],calNotas:{},calActividad:{},
+  mesActual:new Date().getMonth(),anioActual:new Date().getFullYear(),
+  fasesPct:[15,5,3,0,0]
+};
+let timers={};
+
+// ── API KEY GEMINI ──
+function getKey(){return localStorage.getItem('gemini_api_key')||'';}
+function guardarKey(){
+  const k=document.getElementById('gemini-key-input').value.trim();
+  if(!k){document.getElementById('api-key-status').className='api-key-status err';document.getElementById('api-key-status').textContent='⚠ Ingresa una key válida';return;}
+  localStorage.setItem('gemini_api_key',k);
+  document.getElementById('api-key-status').className='api-key-status ok';
+  document.getElementById('api-key-status').textContent='✓ API Key guardada — la IA está activa';
+  document.getElementById('gemini-key-input').value='••••••••••••••••••••••';
+}
+function verKey(){
+  const inp=document.getElementById('gemini-key-input');
+  inp.type=inp.type==='password'?'text':'password';
+}
+function iniciarBanner(){
+  const k=getKey();
+  if(k){
+    document.getElementById('api-key-status').className='api-key-status ok';
+    document.getElementById('api-key-status').textContent='✓ API Key guardada — la IA está activa';
+    document.getElementById('gemini-key-input').placeholder='Key ya guardada (reemplaza si quieres cambiarla)';
+  }
+}
+
+// ── EXTRACCIÓN CON GEMINI ──
+async function extraerOferta(){
+  const texto=document.getElementById('oferta-texto').value.trim();
+  if(!texto){document.getElementById('ai-resultado').textContent='⚠ Pega el texto de la oferta primero';return;}
+  const key=getKey();
+  if(!key){document.getElementById('ai-resultado').textContent='⚠ Primero guarda tu API Key de Gemini arriba';return;}
+  const btn=document.getElementById('btn-extraer');
+  btn.disabled=true;btn.textContent='⏳ Analizando con Gemini...';
+  document.getElementById('ai-resultado').textContent='Extrayendo datos...';
+  try{
+    const prompt=`Eres un asistente que extrae datos de ofertas de trabajo en Colombia. 
+Extrae SOLO JSON puro, sin backticks, sin texto extra, sin explicaciones:
+{"empresa":"","cargo":"","ciudad":"","salario":"","modalidad":"remoto|presencial|hibrido","skills":"skills separadas por coma","experiencia":"","educacion":"","funciones":"resumen breve max 2 oraciones","observaciones":""}
+
+Oferta:
+${texto}`;
+
+    const res=await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
+      {method:'POST',headers:{'Content-Type':'application/json'},
+       body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:600}})}
+    );
+    if(!res.ok){
+      const err=await res.json();
+      throw new Error(err.error?.message||'Error de API');
+    }
+    const data=await res.json();
+    const rawText=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    const clean=rawText.replace(/```json|```/g,'').trim();
+    const obj=JSON.parse(clean);
+    document.getElementById('app-empresa').value=obj.empresa||'';
+    document.getElementById('app-cargo').value=obj.cargo||'';
+    document.getElementById('app-ciudad').value=obj.ciudad||'';
+    document.getElementById('app-salario').value=obj.salario||'';
+    document.getElementById('app-skills').value=obj.skills||'';
+    document.getElementById('app-experiencia').value=obj.experiencia||'';
+    document.getElementById('app-educacion').value=obj.educacion||'';
+    document.getElementById('app-funciones').value=obj.funciones||'';
+    document.getElementById('app-obs').value=obj.observaciones||'';
+    if(obj.modalidad&&['remoto','presencial','hibrido'].includes(obj.modalidad))
+      document.getElementById('app-modalidad').value=obj.modalidad;
+    document.getElementById('app-fecha').value=new Date().toISOString().split('T')[0];
+    document.getElementById('ai-resultado').textContent='✓ Datos extraídos con Gemini — revisa y ajusta si hace falta';
+    document.getElementById('oferta-texto').value='';
+  }catch(e){
+    console.error(e);
+    document.getElementById('ai-resultado').textContent='❌ Error: '+(e.message.includes('API_KEY')||e.message.includes('key')?'API Key inválida — verifica en aistudio.google.com':e.message||'No se pudo extraer — completa manualmente');
+  }
+  btn.disabled=false;btn.textContent='✨ Extraer con IA';
+}
+
+// ── UI ──
+function showTab(name,el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('visible'));
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('visible');
+  el.classList.add('active');
+}
+function fmtTime(s){return Math.floor(s/60)+':'+(s%60<10?'0':'')+s%60;}
+function calcPct(){
+  const done=S.tareas.filter(t=>t.done).length,total=S.tareas.length;
+  const pct=total>0?Math.round(done/total*100):0;
+  document.getElementById('hero-pct').textContent=pct+'%';
+  document.getElementById('hero-bar').style.width=pct+'%';
+  document.getElementById('m-tareas').textContent=done+'/'+total;
+  actualizarFases(done,total);
+}
+function actualizarFases(done,total){
+  if(!total)return;
+  const r=done/total;
+  [20,15,10,5,3].forEach((b,i)=>{S.fasesPct[i]=Math.min(100,Math.round(FASES[i].base+r*b));});
+  renderFases();
+}
+function renderTareas(){
+  document.getElementById('lista-tareas').innerHTML=S.tareas.map(t=>`
+    <div class="task-item">
+      <input type="checkbox" class="task-cb" ${t.done?'checked':''} onchange="toggleT(${t.id})">
+      <div class="task-body">
+        <div class="task-name ${t.done?'done':''}">${t.txt}</div>
+        <div class="task-meta">
+          <span class="task-cat ${CAT_COLORS[t.cat]}">${CAT_LABELS[t.cat]}</span>
+          <span class="task-time"><i class="ti ti-clock" style="font-size:10px"></i> ${t.min} min</span>
+          <span class="timer-display" id="tdsp-${t.id}">${fmtTime(t.tiempo)}</span>
+          <button class="timer-btn ${t.corriendo?'running':''}" onclick="toggleTimer(${t.id})" id="tbtn-${t.id}">${t.corriendo?'Pausar':'Iniciar'}</button>
+          <button onclick="borrarT(${t.id})" style="font-size:10px;padding:2px 5px;border:none;background:none;color:var(--texto3);cursor:pointer"><i class="ti ti-trash"></i></button>
+        </div>
+        <textarea class="obs-input" rows="1" placeholder="Observación..." onchange="saveObs(${t.id},this.value)">${t.obs}</textarea>
+      </div>
+    </div>`).join('');
+  calcPct();
+}
+function toggleT(id){S.tareas=S.tareas.map(t=>t.id===id?{...t,done:!t.done}:t);renderTareas();}
+function borrarT(id){if(timers[id])clearInterval(timers[id]);S.tareas=S.tareas.filter(t=>t.id!==id);renderTareas();}
+function saveObs(id,val){S.tareas=S.tareas.map(t=>t.id===id?{...t,obs:val}:t);}
+function toggleTimer(id){
+  const t=S.tareas.find(t=>t.id===id);if(!t)return;
+  if(t.corriendo){clearInterval(timers[id]);S.tareas=S.tareas.map(x=>x.id===id?{...x,corriendo:false}:x);}
+  else{
+    S.tareas.forEach(x=>{if(x.corriendo){clearInterval(timers[x.id]);S.tareas=S.tareas.map(y=>y.id===x.id?{...y,corriendo:false}:y);}});
+    S.tareas=S.tareas.map(x=>x.id===id?{...x,corriendo:true}:x);
+    timers[id]=setInterval(()=>{
+      S.tareas=S.tareas.map(x=>x.id===id?{...x,tiempo:x.tiempo+1}:x);
+      const e=document.getElementById('tdsp-'+id);const tx=S.tareas.find(x=>x.id===id);
+      if(e&&tx)e.textContent=fmtTime(tx.tiempo);
+    },1000);
+  }
+  const btn=document.getElementById('tbtn-'+id);const tx=S.tareas.find(x=>x.id===id);
+  if(btn&&tx){btn.textContent=tx.corriendo?'Pausar':'Iniciar';btn.className='timer-btn'+(tx.corriendo?' running':'');}
+}
+function agregarTarea(){
+  const txt=document.getElementById('nueva-tarea').value.trim();
+  if(!txt)return;
+  S.tareas.push({id:Date.now(),txt,cat:document.getElementById('nueva-cat').value,min:parseInt(document.getElementById('nueva-min').value)||20,done:false,tiempo:0,corriendo:false,obs:''});
+  document.getElementById('nueva-tarea').value='';document.getElementById('nueva-min').value='';
+  renderTareas();
+}
+function agregarApp(){
+  const empresa=document.getElementById('app-empresa').value.trim();if(!empresa)return;
+  const app={
+    empresa,cargo:document.getElementById('app-cargo').value,
+    ciudad:document.getElementById('app-ciudad').value,
+    fecha:document.getElementById('app-fecha').value,
+    salario:document.getElementById('app-salario').value,
+    modalidad:document.getElementById('app-modalidad').value,
+    skills:document.getElementById('app-skills').value,
+    experiencia:document.getElementById('app-experiencia').value,
+    educacion:document.getElementById('app-educacion').value,
+    funciones:document.getElementById('app-funciones').value,
+    estado:document.getElementById('app-estado').value,
+    match:document.getElementById('app-match').value,
+    obs:document.getElementById('app-obs').value,
+  };
+  S.apps.unshift(app);
+  ['app-empresa','app-cargo','app-ciudad','app-salario','app-skills','app-experiencia','app-educacion','app-funciones','app-obs'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('app-fecha').value='';document.getElementById('app-match').value=50;document.getElementById('match-val').textContent='50%';
+  renderApps();
+}
+function cambiarEstadoApp(i,val){S.apps[i].estado=val;renderApps();}
+function borrarApp(i){S.apps.splice(i,1);renderApps();}
+function renderApps(){
+  const total=S.apps.length;
+  const entrev=S.apps.filter(a=>a.estado==='entrevista').length;
+  const remoto=S.apps.filter(a=>a.modalidad==='remoto').length;
+  const resp=S.apps.filter(a=>a.estado!=='enviada').length;
+  const tasa=total>0?Math.round(resp/total*100):0;
+  document.getElementById('m-apps').textContent=total;
+  document.getElementById('m-entrev').textContent=entrev;
+  document.getElementById('st-total').textContent=total;
+  document.getElementById('st-entrev').textContent=entrev;
+  document.getElementById('st-remoto').textContent=remoto;
+  document.getElementById('st-tasa').textContent=tasa+'%';
+  document.getElementById('apps-count').textContent=total>0?`(${total})`:'';
+  const el=document.getElementById('lista-apps');
+  if(!total){el.innerHTML='<div style="font-size:12px;color:var(--texto3);padding:16px;text-align:center;background:#fff;border-radius:12px;border:1px dashed var(--borde)">Sin aplicaciones registradas aún.<br>Pega una oferta o completa el formulario.</div>';return;}
+  el.innerHTML=S.apps.map((a,i)=>`
+    <div class="app-item">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div style="flex:1">
+          <div class="app-empresa">${a.empresa}</div>
+          <div class="app-cargo">${a.cargo||''} ${a.ciudad?'· '+a.ciudad:''}</div>
+        </div>
+        <button onclick="borrarApp(${i})" style="border:none;background:none;color:var(--texto3);cursor:pointer;padding:2px"><i class="ti ti-trash"></i></button>
+      </div>
+      <div class="app-meta">
+        <span class="app-badge ${AB_CLASS[a.estado]}">${AB_LABEL[a.estado]}</span>
+        ${a.modalidad?`<span class="app-badge ${MOD_CLASS[a.modalidad]}">${a.modalidad}</span>`:''}
+        ${a.salario?`<span style="font-size:10px;color:var(--texto3)"><i class="ti ti-currency-dollar" style="font-size:10px"></i>${a.salario}</span>`:''}
+        ${a.fecha?`<span style="font-size:10px;color:var(--texto3)">${a.fecha}</span>`:''}
+      </div>
+      ${a.skills?`<div class="app-skills">${a.skills.split(',').map(s=>`<span class="skill-tag">${s.trim()}</span>`).join('')}</div>`:''}
+      ${a.funciones?`<div class="app-detail"><b>Funciones:</b> ${a.funciones}</div>`:''}
+      ${a.experiencia||a.educacion?`<div class="app-detail">${a.experiencia?`<b>Exp:</b> ${a.experiencia} `:''} ${a.educacion?`<b>Edu:</b> ${a.educacion}`:''}</div>`:''}
+      ${a.obs?`<div class="app-detail" style="font-style:italic;color:var(--texto3)">${a.obs}</div>`:''}
+      ${a.match?`<div class="match-bar"><div class="match-label">Match con mi perfil: <b>${a.match}%</b></div><div class="match-bg"><div class="match-fill" style="width:${a.match}%"></div></div></div>`:''}
+      <select onchange="cambiarEstadoApp(${i},this.value)" style="margin-top:8px;font-size:11px;padding:3px 8px;border:1px solid var(--borde);border-radius:8px;font-family:'Nunito',sans-serif;color:var(--texto);background:var(--fondo)">
+        <option value="enviada" ${a.estado==='enviada'?'selected':''}>Enviada</option>
+        <option value="respuesta" ${a.estado==='respuesta'?'selected':''}>Respuesta</option>
+        <option value="entrevista" ${a.estado==='entrevista'?'selected':''}>Entrevista</option>
+        <option value="descartada" ${a.estado==='descartada'?'selected':''}>Descartada</option>
+      </select>
+    </div>`).join('');
+}
+function exportarExcel(){
+  if(!S.apps.length){alert('No hay aplicaciones para exportar');return;}
+  const datos=S.apps.map(a=>({'Empresa':a.empresa,'Cargo':a.cargo,'Ciudad':a.ciudad,'Fecha':a.fecha,'Salario':a.salario,'Modalidad':a.modalidad,'Estado':a.estado,'Match %':a.match,'Skills requeridas':a.skills,'Experiencia requerida':a.experiencia,'Educación requerida':a.educacion,'Funciones':a.funciones,'Observaciones':a.obs}));
+  const ws=XLSX.utils.json_to_sheet(datos);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,'Aplicaciones',ws);
+  ws['!cols']=[{wch:20},{wch:25},{wch:15},{wch:12},{wch:15},{wch:12},{wch:12},{wch:8},{wch:35},{wch:18},{wch:18},{wch:40},{wch:40}];
+  XLSX.writeFile(wb,`Aplicaciones_Lucia_Vega_${new Date().toISOString().split('T')[0]}.xlsx`);
+}
+function renderFases(){
+  document.getElementById('fases-lista').innerHTML=FASES.map((f,i)=>`
+    <div class="fase-item">
+      <div class="fase-head"><span class="fase-name">${f.label}</span><span class="fase-num">${S.fasesPct[i]}%</span></div>
+      <div class="fase-bg"><div class="fase-fill" style="width:${S.fasesPct[i]}%;background:${f.color}"></div></div>
+    </div>`).join('');
+  FASES.forEach((_,i)=>{const e=document.getElementById('fp-'+i);if(e)e.textContent=S.fasesPct[i]+'%';});
+}
+function renderCalendario(){
+  const hoy=new Date(),primero=new Date(S.anioActual,S.mesActual,1);
+  const ultimoDia=new Date(S.anioActual,S.mesActual+1,0).getDate();
+  let ini=primero.getDay();ini=ini===0?6:ini-1;
+  const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('cal-mes-label').textContent=meses[S.mesActual]+' '+S.anioActual;
+  let html='';
+  for(let i=0;i<ini;i++)html+=`<div class="cal-day otro-mes"></div>`;
+  for(let d=1;d<=ultimoDia;d++){
+    const esHoy=d===hoy.getDate()&&S.mesActual===hoy.getMonth()&&S.anioActual===hoy.getFullYear();
+    const key=`${S.anioActual}-${S.mesActual}-${d}`;
+    const acts=S.calActividad[key]||{};
+    let dots='';
+    if(acts.empleo)dots+=`<span class="cdot" style="background:var(--rosa)"></span>`;
+    if(acts.linkedin)dots+=`<span class="cdot" style="background:var(--menta)"></span>`;
+    if(acts.sql)dots+=`<span class="cdot" style="background:var(--azul)"></span>`;
+    if(acts.ingles)dots+=`<span class="cdot" style="background:var(--violeta)"></span>`;
+    html+=`<div class="cal-day ${esHoy?'hoy':''}" onclick="selDia(${d})"><div class="cal-num">${d}</div><div class="cal-dots">${dots}</div></div>`;
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+}
+function selDia(d){
+  const key=`${S.anioActual}-${S.mesActual}-${d}`;
+  if(!S.calActividad[key])S.calActividad[key]={empleo:false,linkedin:false,sql:false,ingles:false};
+  document.getElementById('obs-cal').value=S.calNotas[key]||'';
+  document.getElementById('obs-cal').onchange=function(){S.calNotas[key]=this.value;};
+  const cats=['empleo','linkedin','sql','ingles'];
+  S.calActividad[key][cats[new Date().getSeconds()%4]]=true;
+  renderCalendario();
+  document.getElementById('m-sql').textContent=Object.values(S.calActividad).filter(a=>a.sql).length;
+  document.getElementById('m-posts').textContent=Object.values(S.calActividad).filter(a=>a.linkedin).length;
+}
+function cambiarMes(dir){
+  S.mesActual+=dir;
+  if(S.mesActual>11){S.mesActual=0;S.anioActual++;}
+  if(S.mesActual<0){S.mesActual=11;S.anioActual--;}
+  renderCalendario();
+}
+function init(){
+  const now=new Date();
+  document.getElementById('hero-fecha').textContent=now.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('frase-dia').textContent=FRASES[now.getDay()%FRASES.length];
+  iniciarBanner();
+  renderTareas();renderApps();renderFases();renderCalendario();
+}
+init();
+</script>
+</body>
+</html>
